@@ -2,14 +2,12 @@
   <div class="app">
     <h1>📝 Todo App</h1>
 
-    <!-- Thống kê - dùng computed -->
     <div class="stats">
       <span>Tổng: {{ totalTodos }}</span>
       <span>✅ Xong: {{ doneTodos }}</span>
       <span>⏳ Còn lại: {{ remainingTodos }}</span>
     </div>
 
-    <!-- Form thêm todo -->
     <div class="input-group">
       <input
         v-model="newTodo"
@@ -19,16 +17,17 @@
       <button @click="addTodo">Thêm</button>
     </div>
 
-    <!-- Cảnh báo khi gõ - dùng watch -->
     <p v-if="warning" class="warning">{{ warning }}</p>
 
-    <!-- Danh sách todo -->
+    <!-- Dùng component TodoItem, lặp qua từng todo -->
     <ul>
-      <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
-        <input type="checkbox" v-model="todo.done" />
-        <span>{{ todo.text }}</span>
-        <button class="del" @click="removeTodo(todo.id)">🗑</button>
-      </li>
+      <TodoItem
+        v-for="todo in todos"
+        :key="todo.id"
+        :todo="todo"
+        @toggle="toggleTodo"
+        @delete="removeTodo"
+      />
     </ul>
 
     <p v-if="todos.length === 0" class="empty">Chưa có todo nào!</p>
@@ -36,7 +35,14 @@
 </template>
 
 <script>
+// Import component con
+import TodoItem from './components/TodoItem.vue'
+
 export default {
+  // Đăng ký component để dùng trong template
+  components: {
+    TodoItem
+  },
   data() {
     return {
       newTodo: '',
@@ -48,8 +54,6 @@ export default {
       ]
     }
   },
-
-  // Computed: tự tính toán lại khi data thay đổi
   computed: {
     totalTodos() {
       return this.todos.length
@@ -61,8 +65,6 @@ export default {
       return this.todos.filter(t => !t.done).length
     }
   },
-
-  // Watch: theo dõi biến, chạy code khi biến thay đổi
   watch: {
     newTodo(value) {
       if (value.length > 50) {
@@ -72,7 +74,6 @@ export default {
       }
     }
   },
-
   methods: {
     addTodo() {
       if (!this.newTodo.trim()) return
@@ -85,6 +86,12 @@ export default {
       })
       this.newTodo = ''
     },
+    // Xử lý event 'toggle' nhận từ TodoItem
+    toggleTodo(id) {
+      const todo = this.todos.find(t => t.id === id)
+      if (todo) todo.done = !todo.done
+    },
+    // Xử lý event 'delete' nhận từ TodoItem
     removeTodo(id) {
       this.todos = this.todos.filter(t => t.id !== id)
     }
@@ -100,10 +107,6 @@ input[type="text"], input:not([type="checkbox"]) { flex: 1; padding: 8px 12px; b
 button { padding: 8px 16px; background: #42b883; color: white; border: none; border-radius: 6px; cursor: pointer; }
 button:hover { background: #33a06f; }
 ul { list-style: none; padding: 0; }
-li { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; }
-li.done span { text-decoration: line-through; color: #aaa; }
-.del { background: #ff4757; padding: 4px 8px; margin-left: auto; }
-.del:hover { background: #cc3344; }
 .warning { color: #ff4757; font-size: 13px; }
 .empty { color: #aaa; text-align: center; margin-top: 20px; }
 </style>
